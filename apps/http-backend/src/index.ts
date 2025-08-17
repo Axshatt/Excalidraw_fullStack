@@ -1,5 +1,5 @@
 import express from "express";
-import JWT_PASS from "./config";
+import JWT_PASS from "@repo/backend-common/config";
 import jwt  from "jsonwebtoken";
 
 
