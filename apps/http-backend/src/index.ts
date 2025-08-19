@@ -1,25 +1,29 @@
 import express from "express";
 import JWT_PASS from "@repo/backend-common/config";
-import jwt  from "jsonwebtoken";
-import {CreateUserSchema,SignInSchema,CreateRoomSchema} from "@repo/common/types"
-
+import jwt from "jsonwebtoken";
+import { CreateUserSchema, SignInSchema, CreateRoomSchema } from "@repo/common/types"
+import { prismaClient } from "@repo/db/client"
 
 const app = express();
-
-app.post("/signup", (req, res) => {
+const client = prismaClient();
+app.post("/signup", async (req, res) => {
 
     const { username, password } = req.body;
-    const data =CreateUserSchema.safeParse(req.body);
+    const data = CreateUserSchema.safeParse(req.body);
 
-    if(!data.success){
+    if (!data.success) {
         res.json({
-            message:"Incorrect Inputs"
+            message: "Incorrect Inputs"
         })
-        return;
+
     }
+    const user = await client.user.create({
+        username,
+        password
+    })
 
     return res.json({
-        userId:"123"
+        userId: user._id
     })
 
 
@@ -27,19 +31,24 @@ app.post("/signup", (req, res) => {
 
 })
 
-app.post("/signin", (req, res) => {
+app.post("/signin", async (req, res) => {
     const { username, password } = req.body;
-      const data =SignInSchema.safeParse(req.body);
+    const data = SignInSchema.safeParse(req.body);
 
-    if(!data.success){
+    if (!data.success) {
         res.json({
-            message:"Incorrect Inputs"
+            message: "Incorrect Inputs"
         })
         return;
     }
 
-
-    if (username && password) {
+    const response = await client.user.findFirst({
+        where:{
+            username:username
+        },
+    })
+    if(!response){
+        if(username && password) {
         try {
             const token = jwt.sign({
                 username
@@ -53,14 +62,22 @@ app.post("/signin", (req, res) => {
 
         }
     }
+        
+    }
+    return res.json({
+            msg:"User already exists"
+        })
+
+
+    
 })
 
-app.get("/room",(req,res)=>{
-      const data =CreateRoomSchema.safeParse(req.body);
+app.get("/room", (req, res) => {
+    const data = CreateRoomSchema.safeParse(req.body);
 
-    if(!data.success){
+    if (!data.success) {
         res.json({
-            message:"Incorrect Inputs"
+            message: "Incorrect Inputs"
         })
         return;
     }
