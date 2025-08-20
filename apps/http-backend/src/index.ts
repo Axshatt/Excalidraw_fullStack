@@ -9,33 +9,44 @@ const client = prismaClient();
 app.post("/signup", async (req, res) => {
 
     const { username, password } = req.body;
-    const data = CreateUserSchema.safeParse(req.body);
+    const parseData = CreateUserSchema.safeParse(req.body);
 
-    if (!data.success) {
+    if (!parseData.success) {
         res.json({
             message: "Incorrect Inputs"
         })
 
     }
-    const user = await client.user.create({
-        username,
-        password
-    })
+    try{
 
-    return res.json({
-        userId: user._id
-    })
+        await client.user.create({
+            data:{
+                email:parseData.data?.username,
+                password:parseData.data?.password,
+                name:parseData.data?.name
+            }
+            
+        })
+        res.json({
+            userId:"123"
+        })
 
 
+    }catch(e){
+        res.status(411){
+            message:"User Already Exists"
+        }
+
+    }
 
 
 })
 
 app.post("/signin", async (req, res) => {
     const { username, password } = req.body;
-    const data = SignInSchema.safeParse(req.body);
+    const parseData = SignInSchema.safeParse(req.body);
 
-    if (!data.success) {
+    if (!parseData.success) {
         res.json({
             message: "Incorrect Inputs"
         })
@@ -44,7 +55,7 @@ app.post("/signin", async (req, res) => {
 
     const response = await client.user.findFirst({
         where:{
-            username:username
+            username:parseData.data?.username
         },
     })
     if(!response){
