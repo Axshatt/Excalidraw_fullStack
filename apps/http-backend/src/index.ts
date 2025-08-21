@@ -1,10 +1,10 @@
 import express from "express";
-import JWT_PASS from "@repo/backend-common/config";
+import {JWT_PASS} from "@repo/backend-common/config";
 import jwt from "jsonwebtoken";
 import { CreateUserSchema, SignInSchema, CreateRoomSchema } from "@repo/common/types"
 import { prismaClient } from "@repo/db/client"
-
 const app = express();
+app.use(express.json())
 const client = prismaClient();
 app.post("/signup", async (req, res) => {
 
@@ -19,7 +19,7 @@ app.post("/signup", async (req, res) => {
     }
     try{
 
-        await client.user.create({
+        const user = await client.user.create({
             data:{
                 email:parseData.data?.username,
                 password:parseData.data?.password,
@@ -28,14 +28,14 @@ app.post("/signup", async (req, res) => {
             
         })
         res.json({
-            userId:"123"
+            userId:user.id
         })
 
 
     }catch(e){
-        res.status(411){
+        res.status(411).json({
             message:"User Already Exists"
-        }
+        })
 
     }
 
